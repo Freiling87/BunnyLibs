@@ -26,7 +26,7 @@ namespace BunnyLibs
 		bool BypassUnlockChecks { get; }
 	}
 
-	[HarmonyPatch(declaringType: typeof(Agent))]
+	[HarmonyPatch(typeof(Agent))]
 	public class P_Agent_ISetupAgentStats
 	{
 		private static readonly ManualLogSource logger = BLLogger.GetLogger();
@@ -51,6 +51,7 @@ namespace BunnyLibs
 			// TODO: Cache Singleton instances
 			foreach (Type type in InterfaceHelper.TypesImplementingInterface(typeof(ISetupAgentStats)))
 			{
+				// You sure this works?
 				if (type == typeof(ISetupAgentStats) || type.IsAbstract)	//	Only parent interface
 					continue;
 

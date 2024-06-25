@@ -1,4 +1,6 @@
 ﻿#		Bugs
+##			Notes
+When you list game values, always list the base value. There are a lot of places where traits are listed but not the base agent contribution.
 ##			Shapeshifter spawned as Average
 Lost Diminutive
 ##			Bribe Cops

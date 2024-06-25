@@ -69,10 +69,10 @@ namespace BunnyLibs
 			// TODO: Cache Singleton instances
 			foreach (Type type in InterfaceHelper.TypesImplementingInterface(typeof(IRefreshAtEndOfLevelStart)))
 			{
-				if (type == typeof(ISetupAgentStats) || type.IsAbstract)
+				if (type.IsAbstract || type.IsInterface)
 					continue;
 
-				PropertyInfo propertyInfo = type.GetProperty(nameof(ISetupAgentStats.BypassUnlockChecks));
+				PropertyInfo propertyInfo = type.GetProperty(nameof(IRefreshAtEndOfLevelStart.BypassUnlockChecks));
 
 				if (propertyInfo != null && propertyInfo.PropertyType == typeof(bool))
 				{

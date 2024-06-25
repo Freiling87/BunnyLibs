@@ -2,14 +2,12 @@
 using BTHarmonyUtils.TranspilerUtils;
 using HarmonyLib;
 using RogueLibsCore;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 
 namespace BunnyLibs
 {
-	public interface ICheckAgentLOS // : ISetupAgentStats // See Helper class below
+	public interface ICheckAgentLOS 
 	{
 		/// <summary><code>
 		/// The number of LOS check cycles that must elapse for the LOS behavior to occur.
@@ -88,7 +86,9 @@ namespace BunnyLibs
 		private static void RunChecks(Agent agent)
 		{
 			foreach(ICheckAgentLOS trait in agent.GetTraits<ICheckAgentLOS>().Where(t => agent.losCheckAtIntervalsTime > t.LOSInterval))
+			{
 				trait.LOSAction();
+			}
 		}
 	}
 }

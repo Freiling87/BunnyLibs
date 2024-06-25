@@ -11,9 +11,7 @@ public class VRelationship
         Neutral = "Neutral",
         Submissive = "Submissive";
 
-    /// <summary>
-    /// Hostile = 0<br></br>Neutral = 2<br></br>Aligned = 5
-    /// </summary>
+    // Why not just use an enum instead?
     public static List<string> OrderedRelationships = new List<string>()
     {
         Hostile,    //  0
@@ -24,6 +22,9 @@ public class VRelationship
         Aligned     //  5
     };
 
+    /// <summary>
+    /// Hostile = 0<br></br>Neutral = 2<br></br>Aligned = 5
+    /// </summary>
     public static int GetRelationshipLevel(string relationship) =>
         OrderedRelationships.IndexOf(relationship);
 }

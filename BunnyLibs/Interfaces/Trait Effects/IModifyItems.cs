@@ -15,14 +15,14 @@ namespace BunnyLibs
 		void OnPickup(Agent agent, InvItem invItem);
 	}
 
-	[HarmonyPatch(declaringType: typeof(InvDatabase))]
+	[HarmonyPatch(typeof(InvDatabase))]
 	public static class P_InvDatabase 
 	{
 		private static readonly ManualLogSource logger = BLLogger.GetLogger();
 		public static GameController GC => GameController.gameController;
 
 		[HarmonyPriority(Priority.First)]
-		[HarmonyPostfix, HarmonyPatch(methodName: nameof(InvDatabase.AddItemAtEmptySlot), argumentTypes: new[] { typeof(InvItem), typeof(bool), typeof(bool), typeof(int), typeof(int) })]
+		[HarmonyPostfix, HarmonyPatch(nameof(InvDatabase.AddItemAtEmptySlot), new[] { typeof(InvItem), typeof(bool), typeof(bool), typeof(int), typeof(int) })]
 		public static void AddItemAtEmptySlot_Postfix(InvDatabase __instance, ref InvItem item)
 		{
 			Agent agent = __instance.agent;
@@ -32,6 +32,45 @@ namespace BunnyLibs
 				return;
 
 			ModifyItemHelper.SetupItem(agent, item);
+		}
+
+		/// <summary>
+		/// This SHOULD cover all non-Loadout item additions, like the 3 item slots in the editor.
+		/// </summary>
+		/// <param name="__instance"></param>
+		/// <param name="__result"></param>
+		[HarmonyPostfix, HarmonyPatch("AddItemReal")]
+		public static void AddItemReal_InitSetup(InvDatabase __instance, ref InvItem __result)
+		{
+			if (__instance.agent is null)
+				return;
+
+			ModifyItemHelper.SetupItem(__instance.agent, __result);
+
+			// Free NPC ammo
+			if (__instance.agent.isPlayer == 0)
+			{
+				float ratio = (float)__result.maxAmmo / (float)__result.initCount;
+				__result.invItemCount = (int)(__result.invItemCount * ratio);
+			}
+		}
+	}
+
+	[HarmonyPatch(typeof(InvItem))]
+	public static class P_InvItem_IModifyItems
+	{
+		private static readonly ManualLogSource logger = BLLogger.GetLogger();
+		public static GameController GC => GameController.gameController;
+
+		[HarmonyPostfix, HarmonyPatch(nameof(InvItem.SetupDetails))]
+		private static void FinishSetupItem(InvItem __instance)
+		{
+			Agent agent = __instance.belongsToInventory?.agent ?? null;
+
+			if (agent is null)
+				return;
+
+			ModifyItemHelper.SetupItem(agent, __instance);
 		}
 	}
 

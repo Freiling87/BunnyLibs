@@ -44,11 +44,14 @@ namespace BunnyLibs
 
 		public void Refresh()
 		{
-			// MUST use this method to catch BypassUnlockChecks
 			foreach (Agent agent in GC.agentList)
-				Refresh(agent);
+				RefreshSpriteDimensions(agent);
 		}
-		public void Refresh(Agent agent)
+		public void Refresh(Agent agent) { }
+		public bool RunThisLevel() => true;
+
+		// TODO: call to this with isSupine for sleeping/dead, etc
+		public static void RefreshSpriteDimensions(Agent agent, bool isSupine = false)
 		{
 			Vector3 bodyScale = new(1.0f, 1.0f, agent.agentSpriteTransform.localScale.z);
 
@@ -58,7 +61,12 @@ namespace BunnyLibs
 				return;
 
 			foreach (IModBodySize trait in agent.GetTraits<IModBodySize>())
-				bodyScale = new Vector3(bodyScale.x * trait.WidthRatio, bodyScale.y * trait.HeightRatio, bodyScale.z);
+			{
+				//	These trade places for sleeping/dead/etc. agents
+				float xMult = isSupine ? trait.HeightRatio : trait.WidthRatio;
+				float yMult = isSupine ? trait.WidthRatio  : trait.HeightRatio;
+				bodyScale = new Vector3(bodyScale.x * xMult, bodyScale.y * yMult, bodyScale.z);
+			}
 
 			agent.agentSpriteTransform.localScale = bodyScale;
 			float bodySizeIndex = (bodyScale.x + bodyScale.y) / 2f;
@@ -67,6 +75,5 @@ namespace BunnyLibs
 			Vector3 localPosition = agent.depthMask.transform.localPosition;
 			agent.depthMask.transform.localPosition = new Vector3(localPosition.x, -0.82f, localPosition.z);
 		}
-		public bool RunThisLevel() => true;
 	}
 }

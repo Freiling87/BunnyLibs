@@ -26,7 +26,15 @@ namespace BunnyLibs
 		// TODO
 		public void LogStatSheet() { }
 
+
 		//	IModMeleeAttack
+
+		/// <summary><code>
+		///		Weak                    0.50f
+		///		Withdrawal              0.75f
+		///		Strength (Small)        1.25f
+		///		Strength                1.50f
+		/// </code></summary>
 		public float MeleeDmg =>
 			GetCachedStat($"{agent.agentOriginalName}_{agent.agentID}_{nameof(CalcMeleeDmg)}", CalcMeleeDmg, 1);
 		private float CalcMeleeDmg()
@@ -36,8 +44,17 @@ namespace BunnyLibs
 			foreach (IModMeleeAttack trait in agent.GetTraits<IModMeleeAttack>().Where(t => t.ApplyModMeleeAttack() && t.MeleeDamage != 1f))
 				damageMultiplier *= trait.MeleeDamage;
 
+			if (agent.HasEffect(VStatusEffect.Giant)
+				|| agent.HasEffect(VStatusEffect.Shrunk)
+				|| agent.HasTrait(VanillaTraits.Diminutive))
+				damageMultiplier *= agent.agentSpriteTransform.localScale.x;
+
 			return damageMultiplier;
 		}
+
+		/// <summary><code>
+		/// 
+		/// </code></summary>
 		public float MeleeKnockback =>
 			GetCachedStat($"{agent.agentOriginalName}_{agent.agentID}_{nameof(CalcMeleeKnockback)}", CalcMeleeKnockback, 1);
 		private float CalcMeleeKnockback()
@@ -49,21 +66,32 @@ namespace BunnyLibs
 
 			return strength;
 		}
+
+		/// <summary><code>
+		/// Vanilla multipliers:
+		///		Paralyzed               0.00f
+		///		Melee Mobility          0.50f
+		///		Long Lunge              1.50f
+		///		Long Lunge +            1.80f
+		/// </code></summary>
 		public float MeleeLunge =>
 			GetCachedStat($"{agent.agentOriginalName}_{agent.agentID}_{nameof(CalcMeleeLunge)}", CalcMeleeLunge, 1);
 		private float CalcMeleeLunge()
 		{
 			float lunge = 1f;
 
-			foreach (IModMeleeAttack trait in agent.GetTraits<IModMeleeAttack>().Where(t => t.ApplyModMeleeAttack()))
+			foreach (IModMeleeAttack trait in agent.GetTraits<IModMeleeAttack>().Where(t => t.ApplyModMeleeAttack() && t.MeleeLunge != 1f))
 			{
-				logger.LogDebug($"Applying bonus ({trait}): {trait.MeleeLunge}");
 				lunge *= trait.MeleeLunge;
 			}
 
-			logger.LogDebug($"Net Lunge Bonus: {lunge}");
 			return lunge;
 		}
+
+		/// <summary><code>
+		/// Fist, Knife, Baton, Wrench  5.00f
+		/// Sledge, Crowbar, Axe, Bat   4.00f
+		/// </code></summary>
 		public float MeleeSpeed =>
 			GetCachedStat($"{agent.agentOriginalName}_{agent.agentID}_{nameof(CalcMeleeSpeed)}", CalcMeleeSpeed, 1);
 		private float CalcMeleeSpeed()
@@ -72,77 +100,91 @@ namespace BunnyLibs
 
 			foreach (IModMeleeAttack trait in agent.GetTraits<IModMeleeAttack>().Where(t => t.ApplyModMeleeAttack() && t.MeleeSpeed != 1f))
 			{
-				logger.LogDebug($"Applying bonus ({trait}): {trait.MeleeSpeed}");
 				speed *= trait.MeleeSpeed;
 			}
 
-			logger.LogDebug($"Net MeleeSpeed Bonus: {speed}");
 			return speed;
 		}
 
+
 		//	IModMoveSpeed
+
+		/// <summary>
+		/// CURRENTLY NOT IMPLEMENTED
+		/// </summary>
 		public float SpeedAcceleration =>
 			GetCachedStat($"{agent.agentOriginalName}_{agent.agentID}_{nameof(CalcAcceleration)}", CalcAcceleration, 1);
 		private float CalcAcceleration()
 		{
 			float accelerationMult = 1f;
 
-			foreach (IModMovement trait in agent.GetTraits<IModMovement>())
+			foreach (IModMovement trait in agent.GetTraits<IModMovement>().Where(t => t.Acceleration != 1f))
 			{
-				logger.LogDebug($"Applying bonus ({trait}): {trait.Acceleration}");
+				//logger.LogDebug($"Applying bonus ({trait}): {trait.Acceleration}");
 				accelerationMult *= trait.Acceleration;
 			}
 
-			logger.LogDebug($"Net Accel Bonus: {accelerationMult}");
+			//logger.LogDebug($"Net Accel Bonus: {accelerationMult}");
 
 			return accelerationMult;
 		}
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public float SpeedMax =>
 			GetCachedStat($"{agent.agentOriginalName}_{agent.agentID}_{nameof(CalcMaxSpeed)}", CalcMaxSpeed, 1);
 		private float CalcMaxSpeed()
 		{
 			float maxSpeedMult = 1f;
 
-			foreach (IModMovement trait in agent.GetTraits<IModMovement>())
+			foreach (IModMovement trait in agent.GetTraits<IModMovement>().Where(t => t.MoveSpeedMax != 1f))
 			{
-				logger.LogDebug($"Applying bonus ({trait}): {trait.MoveSpeedMax}");
+				//logger.LogDebug($"Applying bonus ({trait}): {trait.MoveSpeedMax}");
 				maxSpeedMult *= trait.MoveSpeedMax;
 			}
 
-			logger.LogDebug($"Net Max Speed Bonus: {maxSpeedMult}");
+			//logger.LogDebug($"Net Max Speed Bonus: {maxSpeedMult}");
 
 			return maxSpeedMult;
 		}
 
+
 		//	IModResistances
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public float ResistMelee =>
 			GetCachedStat($"{agent.agentOriginalName}_{agent.agentID}_{nameof(CalcMeleeRes)}", CalcMeleeRes, 1);
 		private float CalcMeleeRes()
 		{
+			// Tested, works
 			float meleeRes = 1f;
 
-			foreach (IModResistances trait in agent.GetTraits<IModResistances>())
+			foreach (IModResistances trait in agent.GetTraits<IModResistances>().Where(t => t.ResistMelee != 1f))
 			{
-				logger.LogDebug($"Applying bonus ({trait}): {trait.ResistMelee}");
-
 				meleeRes *= trait.ResistMelee;
 			}
 
-			logger.LogDebug($"Net Resist Melee: {meleeRes}");
-
 			return meleeRes;
 		}
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public float ResistKnockback =>
 			GetCachedStat($"{agent.agentOriginalName}_{agent.agentID}_{nameof(CalcKnockbackRes)}", CalcKnockbackRes, 1);
 		private float CalcKnockbackRes()
 		{
 			float knockback = 1f;
 
-			foreach (IModResistances trait in agent.GetTraits<IModResistances>())
+			foreach (IModResistances trait in agent.GetTraits<IModResistances>().Where(t => t.ResistKnockback != 1f))
 				knockback *= trait.ResistKnockback;
 
 			return knockback;
 		}
+
 
 		//	Cache Mgr.
 		private static Dictionary<string, Tuple<float, float>> statCache = new Dictionary<string, Tuple<float, float>>();
@@ -167,7 +209,7 @@ namespace BunnyLibs
 	}
 
 	[HarmonyPatch(typeof(Agent))]
-	public class P_Agent_AgentStatsHook
+	internal class P_Agent_AgentStatsHook
 	{
 		[HarmonyPrefix, HarmonyPatch("Start")]
 		public static bool Start_CreateHook(Agent __instance)

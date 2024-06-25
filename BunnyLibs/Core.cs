@@ -19,7 +19,7 @@ namespace BunnyLibs
     {
         public const string PluginGUID = "Freiling87.streetsofrogue.BunnyLibs";
         public const string PluginName = "BunnyLibs";
-        public const string PluginVersion = "0.1.0";
+        public const string PluginVersion = "0.1.1";
 		public const string subVersion = "a";
 
 		public void Awake()
@@ -46,20 +46,38 @@ namespace BunnyLibs
 			return (T)Activator.CreateInstance(typeof(T), callFrom, ptr);
 		}
 
-		public static string GetRandomMember(List<string> list) =>
-			list[random.Next(0, list.Count - 1)];
+		public static string? GetRandomMember(List<string> list) =>
+			list.Any()
+				? list[random.Next(0, list.Count - 1)]
+				: null;
 
 		// SingletonsOfType might be better
 		// T will take a base class
+
+		/// <summary>
+		/// Requires parameterless constructor in all types to be included.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <returns></returns>
 		public static List<T> AllClassesOfType<T>() where T : class
 		{
 			List<T> list = new List<T>();
-			var derivedTypes = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.IsSubclassOf(typeof(T)));
+			//var derivedTypes = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.IsSubclassOf(typeof(T)));
+			var derivedTypes = AppDomain.CurrentDomain.GetAssemblies()
+				.SelectMany(assembly => assembly.GetTypes())
+				.Where(t => t.IsSubclassOf(typeof(T)));
 
 			foreach (var type in derivedTypes)
 			{
-				var instance = Activator.CreateInstance(type) as T;
-				list.Add(instance);
+				try
+				{
+					var instance = Activator.CreateInstance(type) as T;
+					list.Add(instance);
+				}
+				catch
+				{
+					throw new NotImplementedException("Failed to instantiate for AllClassesOfType. Ensure that all target classes contain a parameterless constructor.");
+				}
 			}
 
 			return list;

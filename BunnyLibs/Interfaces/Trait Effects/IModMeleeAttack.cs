@@ -3,6 +3,7 @@ using BTHarmonyUtils.TranspilerUtils;
 using HarmonyLib;
 using RogueLibsCore;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -13,27 +14,26 @@ namespace BunnyLibs
 	public interface IModMeleeAttack
 	{
 		/// <summary><code>
-		///		Strength:               1.50f
-		///		Strength (Small):       1.25f
-		///		Weak:                   0.50f
-		///		Withdrawal:             0.75f
+		///		Weak                    0.50f
+		///		Withdrawal              0.75f
+		///		Strength (Small)        1.25f
+		///		Strength                1.50f
 		/// </code></summary>
 		float MeleeDamage { get; }
 
 		/// <summary><code>
-		///		BigKnockbackForAll:     1.50f
-		///		KnockbackMore:          1.50f
-		///		KnockbackLess:          1.50f
-		///		KnockbackLess2:         2.00f
+		///		BigKnockbackForAll      1.50f
+		///		KnockbackMore           1.50f
+		///		KnockbackLess           1.50f
+		///		KnockbackLess2          2.00f
 		/// </code></summary>
 		float MeleeKnockback { get; }
 
 		/// <summary><code>
-		/// How far forward the agent moves forward when attacking.
 		///		Paralyzed               0.00f
-		///		MeleeMobility:          0.50f
-		///		Long Lunge:             1.50f
-		///		Long Lunge +:           1.80f
+		///		Melee Mobility          0.50f
+		///		Long Lunge              1.50f
+		///		Long Lunge +            1.80f
 		/// </code></summary>
 		float MeleeLunge { get; }
 
@@ -41,9 +41,8 @@ namespace BunnyLibs
 		//float MeleePenetration { get; }
 
 		/// <summary><code>
-		/// Fist, Knife, Baton, Wrench 5.00f
-		/// Sledge, Crowbar, Axe, Bat  4.00f
-		/// 
+		/// Fist, Knife, Baton, Wrench  5.00f
+		/// Sledge, Crowbar, Axe, Bat   4.00f
 		/// </code></summary>
 		float MeleeSpeed { get; } // This should tie into weapon weight eventually
 
@@ -51,7 +50,7 @@ namespace BunnyLibs
 		/// Whether to apply stat multipliers to this attack.
 		/// </summary>
 		bool ApplyModMeleeAttack();
-
+		 
 		bool CanHitGhost();
 
 		void OnStrike(PlayfieldObject target); // TODO: User can pass true or false to cancel vanilla ChangeHealth
@@ -75,17 +74,17 @@ namespace BunnyLibs
 			if (___agent.isPlayer > 0)
 				return;
 
-			logger.LogDebug($"Combat.Start Postfix: {___agent.agentRealName}");
+			//logger.LogDebug($"Combat.Start Postfix: {___agent.agentRealName}");
 
 			// TRY IF NEEDED:
-			__instance.meleeJustBlockedTimeStart = 0f;
-			__instance.meleeJustHitCloseTimeStart = 0f;
-			__instance.meleeJustHitTimeStart = 0f;
+			//__instance.meleeJustBlockedTimeStart = 0f;
+			//__instance.meleeJustHitCloseTimeStart = 0f;
+			//__instance.meleeJustHitTimeStart = 0f;
 
-			//float meleeSpeed = ___agent.GetHook<H_AgentCachedStats>().MeleeSpeed;
-			//__instance.meleeJustBlockedTimeStart *= meleeSpeed;
-			//__instance.meleeJustHitCloseTimeStart *= meleeSpeed;
-			//__instance.meleeJustHitTimeStart *= meleeSpeed;
+			float meleeSpeed = ___agent.GetHook<H_AgentCachedStats>().MeleeSpeed;
+			__instance.meleeJustBlockedTimeStart *= meleeSpeed;
+			__instance.meleeJustHitCloseTimeStart *= meleeSpeed;
+			__instance.meleeJustHitTimeStart *= meleeSpeed;
 		}
 	}
 
@@ -347,9 +346,25 @@ namespace BunnyLibs
 		private static GameController GC => GameController.gameController;
 
 		[HarmonyPostfix, HarmonyPatch(nameof(Movement.FindKnockBackStrength))]
-		public static void FindKnockBackStrength(PlayfieldObject ___playfieldObject, ref float __result)
+		public static void AdjustKnockBackStrength(PlayfieldObject ___playfieldObject, ref float __result)
 		{
-			Agent hitterAgent = ___playfieldObject.knockedByObject.playfieldObjectAgent;
+			// This might be done at the wrong place. Take note of WHICH agent is called in the original, ask why the hitter isn't and where they are.
+			//logger.LogDebug($"PFO: {___playfieldObject}");
+			//logger.LogDebug($"KBO: {___playfieldObject.knockedByObject}"); // Blank but not NRE
+			//logger.LogDebug($"PFOA: {___playfieldObject.knockedByObject.playfieldObjectAgent}"); // NRE
+
+			StackTrace stackTrace = new StackTrace();
+
+			if (stackTrace.FrameCount > 1)
+			{
+				//logger.LogDebug($"FrameCount: {stackTrace.FrameCount}");
+				MethodBase callingMethod = stackTrace.GetFrame(1).GetMethod();
+				//logger.LogDebug($"Calling Method: {callingMethod.DeclaringType}.{callingMethod.Name}");
+			}
+
+			Agent? hitterAgent = ___playfieldObject.knockedByObject.playfieldObjectAgent ?? null;
+
+			// TODO: Ensure this applies only to melee, since rn it applies to bullets too
 
 			// TEST: Does this still NRE when charging into border walls?
 			if (hitterAgent is null)
@@ -376,6 +391,7 @@ namespace BunnyLibs
 		private static readonly ManualLogSource logger = BLLogger.GetLogger();
 		private static GameController GC => GameController.gameController;
 
+		// BUG: Disables damage effects from Giant/Diminutive. Addressing in Agent Stat Hook.
 		[HarmonyTranspiler, HarmonyPatch(nameof(PlayfieldObject.FindDamage), new[] { typeof(PlayfieldObject), typeof(bool), typeof(bool), typeof(bool) })]
 		private static IEnumerable<CodeInstruction> SetMeleeDamageDealt(IEnumerable<CodeInstruction> codeInstructions)
 		{
@@ -391,7 +407,7 @@ namespace BunnyLibs
 				{
 					new CodeInstruction(OpCodes.Ldloc_S, 6),	//	agent
 					new CodeInstruction(OpCodes.Ldfld, agentSpriteTransform),
-					new CodeInstruction(OpCodes.Callvirt),//, getLocalScale), Try blank first
+					new CodeInstruction(OpCodes.Callvirt),		//	getLocalScale, Seems to work with blank
 					new CodeInstruction(OpCodes.Ldfld, x),
 				},
 				insertInstructions: new List<CodeInstruction>

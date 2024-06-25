@@ -1,13 +1,5 @@
-﻿public static class vLevelTheme
+﻿public static class VLevelTheme
 {
-	public const string
-			Downtown = "Downtown",
-			Industrial = "Industrial",
-			MayorVillage = "MayorVillage",
-			Park = "Park",
-			Slums = "Slums",
-			Uptown = "Uptown";
-
 	public enum LevelTheme : int
 	{
 		Slums = 0,

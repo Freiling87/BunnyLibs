@@ -54,26 +54,25 @@ namespace BunnyLibs
 		}
 		private static float ApplyCostEffects(PlayfieldObject instance, string transactionType, float num)
 		{
-			logger.LogDebug("ApplyCostEffects " + instance.name);
+			if (instance.interactingAgent is Agent buyer)
+			{
+				foreach (IModTransactionCosts trait in buyer.GetTraits<IModTransactionCosts>())
+					foreach (KeyValuePair<string, float> kvp in trait.CostBonusesAsPlayer.Where(kvp => kvp.Key == transactionType && kvp.Value != 1f))
+					{
+						logger.LogDebug($"Applying Buyer Cost Bonus ({buyer.agentRealName} - {trait}): {num} / {kvp.Value} = {num / kvp.Value}");
+						num /= kvp.Value;
+					}
+			}
 
-			Agent buyer = instance.interactingAgent;
-			foreach (IModTransactionCosts trait in buyer.GetTraits<IModTransactionCosts>())
-				foreach (KeyValuePair<string, float> kvp in trait.CostBonusesAsPlayer.Where(kvp => kvp.Key == transactionType && kvp.Value != 1f))
-				{
-					logger.LogDebug($"Applying Buyer Cost Bonus ({buyer.agentRealName} - {trait}): {num} / {kvp.Value} = {num / kvp.Value}");
-					num /= kvp.Value;
-				}
-
-			if (instance.playfieldObjectType != "Agent")
-				return num;
-
-			Agent seller = instance.playfieldObjectAgent;
-			foreach (IModTransactionCosts trait in seller.GetTraits<IModTransactionCosts>())
-				foreach (KeyValuePair<string, float> kvp in trait.CostBonusesAsNPC.Where(kvp => kvp.Key == transactionType && kvp.Value != 1f))
-				{
-					logger.LogDebug($"Applying Seller Cost Bonus ({buyer.agentRealName} - {trait}): {num} * {kvp.Value} = {num * kvp.Value}");
-					num *= kvp.Value;
-				}
+			if (instance.playfieldObjectAgent is Agent seller)
+			{
+				foreach (IModTransactionCosts trait in seller.GetTraits<IModTransactionCosts>())
+					foreach (KeyValuePair<string, float> kvp in trait.CostBonusesAsNPC.Where(kvp => kvp.Key == transactionType && kvp.Value != 1f))
+					{
+						logger.LogDebug($"Applying Seller Cost Bonus ({seller.agentRealName} - {trait}): {num} * {kvp.Value} = {num * kvp.Value}");
+						num *= kvp.Value;
+					}
+			}
 
 			return num;
 		}

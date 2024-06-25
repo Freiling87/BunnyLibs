@@ -39,6 +39,5 @@
         Cannibalize = "Cannibalize",
         GoGet = "GoGet",
         GetElectionResults = "GetElectionResults",
-        CommitArson = "CommitArson",
-        WanderLevel = "WanderLevel";
+        CommitArson = "CommitArson";
 }

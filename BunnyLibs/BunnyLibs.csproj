@@ -22,12 +22,21 @@
     <TargetFramework>net48</TargetFramework>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <ImplicitUsings>enable</ImplicitUsings>
+    <DocumentationFile>C:\Program Files (x86)\Steam\steamapps\common\Streets of Rogue\BepInEx\plugins\BunnyLibs.xml</DocumentationFile>
 
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Interfaces\Trait Application\**" />
+    <EmbeddedResource Remove="Interfaces\Trait Application\**" />
+    <None Remove="Interfaces\Trait Application\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Hooks\H_AgentHook.cs" />
+    <Compile Remove="Interfaces\IApplyDemographically.cs" />
     <Compile Remove="Interfaces\IApplyOnAgentDeath.cs" />
+    <Compile Remove="Interfaces\IModArmorDepletion.cs" />
     <Compile Remove="Interfaces\IRefreshPerLevel\IRefreshAtStartOfLevelStart.cs" />
     <Compile Remove="Interfaces\IRefreshAtLevelEnd.cs" />
   </ItemGroup>
@@ -52,13 +61,7 @@
       <HintPath>..\Libraries\Rewired_Core.dll</HintPath>
     </Reference>
     <Reference Include="RogueLibsCore">
-      <HintPath>..\Libraries\RogueLibsCore.dll</HintPath>
-    </Reference>
-    <Reference Include="RogueLibsCore.Test">
-      <HintPath>..\Libraries\RogueLibsCore.Test.dll</HintPath>
-    </Reference>
-    <Reference Include="RogueLibsPatcher">
-      <HintPath>..\Libraries\RogueLibsPatcher.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Streets of Rogue\BepInEx\plugins\RogueLibsCore.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\Libraries\UnityEngine.dll</HintPath>

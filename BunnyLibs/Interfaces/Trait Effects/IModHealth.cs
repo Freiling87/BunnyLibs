@@ -2,8 +2,6 @@
 using BTHarmonyUtils.TranspilerUtils;
 using HarmonyLib;
 using RogueLibsCore;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -71,17 +69,18 @@ namespace BunnyLibs
 
 		private static int HealthPerEndurance(int vanilla, Agent agent)
 		{
-			logger.LogDebug("HealthPerEndurance (Agent)");
-			int timesToApply = (vanilla / 20) + agent.enduranceStatMod;
+			//logger.LogDebug("HealthPerEndurance (Agent)");
+			int newInt = vanilla; // Can't do ref, doesn't seem to work
+			int timesToApply = (newInt / 20) + agent.enduranceStatMod;
 
 			foreach (IModHealthPerEndurance trait in agent.GetTraits<IModHealthPerEndurance>())
 			{
-				vanilla += trait.HealthPerEnduranceBonus * timesToApply;
+				newInt += trait.HealthPerEnduranceBonus * timesToApply;
 				logger.LogDebug($"HPE: {trait} gives {trait.HealthPerEnduranceBonus}.");
 				logger.LogDebug($"Added: {trait.HealthPerEnduranceBonus * timesToApply}");
 			}
 
-			return vanilla;
+			return newInt;
 		}
 	}
 }

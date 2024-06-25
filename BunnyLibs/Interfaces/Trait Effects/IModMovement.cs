@@ -2,8 +2,6 @@
 using BTHarmonyUtils.TranspilerUtils;
 using HarmonyLib;
 using RogueLibsCore;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -63,11 +61,17 @@ namespace BunnyLibs
 		private static readonly ManualLogSource logger = BLLogger.GetLogger();
 		private static GameController GC => GameController.gameController;
 
-		[HarmonyPostfix, HarmonyPatch(nameof(Agent.FindSpeed))]
-		private static void LogMMoveSpeedMax(Agent __instance, ref int __result)
+		[HarmonyPrefix, HarmonyPatch(nameof(Agent.FindSpeed))]
+		private static bool LogSpeed(Agent __instance)
 		{
-			logger.LogDebug($"=== LogMoveSpeedMax: {__instance.agentRealName}.speedMax = {__instance.speedMax} ");
+			//logger.LogDebug("LogSpeed:");
+
+			foreach (IModMovement trait in __instance.GetTraits<IModMovement>())
+				logger.LogDebug($"\tMovement Trait: {trait}");
+
+			return true;
 		}
+
 		[HarmonyTranspiler, HarmonyPatch(nameof(Agent.FindSpeed))]
 		private static IEnumerable<CodeInstruction> SetMoveSpeedMax(IEnumerable<CodeInstruction> codeInstructions)
 		{

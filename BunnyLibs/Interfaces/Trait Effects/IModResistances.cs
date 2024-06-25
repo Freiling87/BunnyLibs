@@ -39,8 +39,8 @@ namespace BunnyLibs
 		[HarmonyPrefix, HarmonyPatch(typeof(Movement), nameof(Movement.KnockBack))]
 		private static bool ApplyKnockbackResistance2(Movement __instance, ref float strength)
 		{
-			logger.LogDebug($"=== ApplyKnockbackResistance2: {__instance.name}");
-			logger.LogDebug("\tStart: " + strength);
+			//logger.LogDebug($"=== ApplyKnockbackResistance2: {__instance.name}");
+			//logger.LogDebug("\tStart: " + strength);
 
 			if (!__instance.isAgent)
 				return true;
@@ -48,8 +48,8 @@ namespace BunnyLibs
 			Agent hitAgent = __instance.GetComponent<Agent>();
 			float KnockbackResistance = hitAgent.GetOrAddHook<H_AgentCachedStats>().ResistKnockback;
 			strength *= KnockbackResistance;
-			logger.LogDebug("Knockback Resistance: " + KnockbackResistance + ": " + strength);
-			logger.LogDebug("--- Net Strength: " + strength);
+			//logger.LogDebug("Knockback Resistance: " + KnockbackResistance + ": " + strength);
+			//logger.LogDebug("--- Net Strength: " + strength);
 			return true;
 		}
 	}
@@ -94,7 +94,7 @@ namespace BunnyLibs
 
 		private static float ApplyDamageResistance(PlayfieldObject damagerObject, Agent agent, float vanilla)
 		{
-			logger.LogDebug($"=== GetDamageReceived: {agent.agentRealName} - VANILLA: {vanilla}");
+			//logger.LogDebug($"=== GetDamageReceived: {agent.agentRealName} - VANILLA: {vanilla}");
 			float resistance = 1f;
 
 			if (damagerObject.isBullet)
@@ -116,7 +116,7 @@ namespace BunnyLibs
 
 			}
 
-			logger.LogDebug($"\tNET DAMAGE: {vanilla} / {resistance} = {vanilla / resistance}");
+			//logger.LogDebug($"\tNET DAMAGE: {vanilla} / {resistance} = {vanilla / resistance}");
 			return vanilla / resistance;
 		}
 	}
